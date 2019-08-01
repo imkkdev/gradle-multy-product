@@ -1,0 +1,31 @@
+ext {
+
+    app02Cfg = {
+        applicationId "com.multygradle.app02"
+        versionCode 1
+        versionName "1.0"
+        manifestPlaceholders = [
+                MTA_APPKEY:"MM9090",
+                BD_LOC_KEY:"PP2GH78A"
+        ]
+        buildConfigField("String", "MIPUSH_APP_ID", '"8888888"')
+        buildConfigField("String", "MIPUSH_APP_KEY", '"AK47998"')
+        buildConfigField("String", "BUGLY_APP_ID", '"6A6A6A6"')
+
+        ext {
+            API_URL = [
+                    debug  : "http://192.132.105.171:8989/",
+                    release: "https://multygradlePRO.com/"
+            ]
+            OCR_APP_ID = [
+                    debug  : "uu098",
+                    release: "vv127"
+            ]
+            OCR_APP_SECRET = [
+                    debug  : "89wdahj1jhkhkNMVKKL12SA",
+                    release: "WAUGUI18UDAWBJAKDJBDJBK"
+            ]
+        }
+    }
+
+}
