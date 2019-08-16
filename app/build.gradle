@@ -35,13 +35,25 @@ android {
         flavorDimensions ""
     }
     buildTypes {
+        def taskNames = project.gradle.startParameter.taskNames
+        def signDef = null
+        if (taskNames.size()>0) {
+            // assembleApp01BetaDebug
+            if (taskNames.get(0).contains('App01')) {
+                signDef = signingConfigs.app01
+            } else if (taskNames.get(0).contains('App02')) {
+                signDef = signingConfigs.app02
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signDef
         }
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signDef
         }
     }
 
@@ -55,12 +67,6 @@ android {
         variant.buildConfigField "String", "API_URL", "\"${flavor.API_URL[variant.buildType.name]}\""
         variant.buildConfigField "String", "SDK_OCR_APP_ID", "\"${flavor.OCR_APP_ID[variant.buildType.name]}\""
         variant.buildConfigField "String", "SDK_OCR_APP_SECRET", "\"${flavor.OCR_APP_SECRET[variant.buildType.name]}\""
-
-        def mergedFlavor = variant.mergedFlavor
-        switch (flavor.name) {
-            case "app01": mergedFlavor.setSigningConfig(signingConfigs.app01); break
-            case "app02": mergedFlavor.setSigningConfig(signingConfigs.app02); break
-        }
 
         variant.outputs.all {
             def apkName = "${flavor.name}_v${mergedFlavor.versionName}_${buildType.name}_${buildTime()}"

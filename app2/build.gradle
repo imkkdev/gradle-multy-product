@@ -35,13 +35,25 @@ android {
     }
 
     buildTypes {
+        def taskNames = project.gradle.startParameter.taskNames
+        def signDef = null
+        if (taskNames.size()>0) {
+            // assembleApp01BetaDebug
+            if (taskNames.get(0).contains('App01')) {
+                signDef = signingConfigs.app01
+            } else if (taskNames.get(0).contains('App02')) {
+                signDef = signingConfigs.app02
+            }
+        }
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signDef
         }
         debug {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signDef
         }
     }
 
