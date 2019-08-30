@@ -1,0 +1,183 @@
+apply plugin: 'com.android.application'
+
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
+android {
+
+    signingConfigs {
+        app01 {
+            keyAlias 'app01'
+            keyPassword 'android1024'
+            storeFile file('../keystore.jks')
+            storePassword 'android1024'
+        }
+        app02 {
+            keyAlias 'app02'
+            keyPassword 'android1024'
+            storeFile file('../keystore2.jks')
+            storePassword 'android1024'
+        }
+    }
+
+    compileSdkVersion 28
+    defaultConfig {
+        applicationId "com.kk.multygradle3"
+        minSdkVersion 21
+        targetSdkVersion 28
+        versionCode 1
+        versionName "1.0"
+
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        flavorDimensions "app", "server", "channel"
+    }
+
+    buildTypes {
+        def taskNames = project.gradle.startParameter.taskNames
+        def signDef = null
+        if (taskNames.size()>0) {
+            // assembleApp01BetaDebug
+            if (taskNames.get(0).contains('App01')) {
+                signDef = signingConfigs.app01
+            } else if (taskNames.get(0).contains('App02')) {
+                signDef = signingConfigs.app02
+            }
+        }
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signDef
+        }
+        debug {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+            signingConfig signDef
+        }
+    }
+
+    productFlavors {
+
+        app01 {
+            dimension "app"
+            applicationId "com.multygradle.app01"
+            versionCode 1
+            versionName "1.0"
+            manifestPlaceholders = [
+                    MTA_APPKEY: "AK8896",
+                    BD_LOC_KEY: "nmklj2DAW9"
+            ]
+            buildConfigField("String", "MIPUSH_APP_ID", '"1234567"')
+            buildConfigField("String", "MIPUSH_APP_KEY", '"9876556"')
+            buildConfigField("String", "BUGLY_APP_ID", '"5D5D5D5"')
+        }
+
+        app02 {
+            dimension "app"
+            applicationId "com.multygradle.app02"
+            versionCode 1
+            versionName "1.0"
+            manifestPlaceholders = [
+                    MTA_APPKEY: "MM9090",
+                    BD_LOC_KEY: "PP2GH78A"
+            ]
+            buildConfigField("String", "MIPUSH_APP_ID", '"8888888"')
+            buildConfigField("String", "MIPUSH_APP_KEY", '"AK47998"')
+            buildConfigField("String", "BUGLY_APP_ID", '"6A6A6A6"')
+        }
+
+        beta {
+            dimension "server"
+        }
+        product {
+            dimension "server"
+        }
+
+        // channel dimension
+        website {
+            dimension "channel"
+            manifestPlaceholders = ["INSTALL_CHANNEL": "website"]
+        }
+        google {
+            dimension "channel"
+            manifestPlaceholders = ["INSTALL_CHANNEL": "googleplay"]
+        }
+        facebook {
+            dimension "channel"
+            manifestPlaceholders = ["INSTALL_CHANNEL": "facebook"]
+        }
+    }
+
+    // Ignore betaRelease and productDebug
+    variantFilter { variant ->
+        if (variant.buildType.name == 'debug') {
+            variant.getFlavors().each() { flavor ->
+                if (flavor.name == 'product') {
+                    variant.setIgnore(true);
+                }
+            }
+        }
+        if (variant.buildType.name == 'release') {
+            variant.getFlavors().each() { flavor ->
+                if (flavor.name == 'beta') {
+                    variant.setIgnore(true);
+                }
+            }
+        }
+    }
+
+    applicationVariants.all { variant ->
+        switch (variant.flavorName) {
+            case "app01Beta":
+                variant.buildConfigField "String", "API_URL", '"http://120.102.102.102:8092/smartWalletApp/"'
+                variant.buildConfigField "String", "SDK_OCR_APP_ID", '"Q3ECVRF"'
+                variant.buildConfigField "String", "SDK_OCR_APP_SECRET", '"4zoks4aTcYmJFH8ADWJBylgU"'
+                break
+            case "app01Product":
+                variant.buildConfigField "String", "API_URL", '"http://wallet.android.cn/smartWalletApp/"'
+                variant.buildConfigField "String", "SDK_OCR_APP_ID", '"Q3ECVRF"'
+                variant.buildConfigField "String", "SDK_OCR_APP_SECRET", '"4zoks4aTcYmJFH8ADWJBylgU"'
+                break
+            case "app02Beta":
+                variant.buildConfigField "String", "API_URL", '"http://111.111.111.111:8092/smartWalletApp/"'
+                variant.buildConfigField "String", "SDK_OCR_APP_ID", '"Q3ECVRF"'
+                variant.buildConfigField "String", "SDK_OCR_APP_SECRET", '"4zoks4aTcYmJFH8ADWJBylgU"'
+                break
+            case "app02Product":
+                variant.buildConfigField "String", "API_URL", '"http://wallet.android.cn/smartWalletApp/"'
+                variant.buildConfigField "String", "SDK_OCR_APP_ID", '"Q3ECVRF"'
+                variant.buildConfigField "String", "SDK_OCR_APP_SECRET", '"4zoks4aTcYmJFH8ADWJBylgU"'
+                break
+        }
+
+        def flavor = variant.productFlavors[0]
+        def mergedFlavor = variant.mergedFlavor
+        switch (flavor.name) {
+            case "app01": mergedFlavor.setSigningConfig(signingConfigs.app01); break
+            case "app02": mergedFlavor.setSigningConfig(signingConfigs.app02); break
+        }
+        variant.outputs.all {
+            def apkName = "${flavor.name}_v${variant.mergedFlavor.versionName}_${buildType.name}_${buildTime()}"
+            outputFileName = apkName + ".apk"
+        }
+    }
+
+}
+
+static def buildTime() {
+    def date = new Date()
+    def formattedDate = date.format('MMddHHmm')
+    return formattedDate
+}
+
+
+dependencies {
+    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
+    implementation 'com.android.support:appcompat-v7:28.0.0'
+    implementation 'com.android.support.constraint:constraint-layout:1.1.3'
+    testImplementation 'junit:junit:4.12'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
+}
