@@ -157,8 +157,9 @@ android {
             case "app01": mergedFlavor.setSigningConfig(signingConfigs.app01); break
             case "app02": mergedFlavor.setSigningConfig(signingConfigs.app02); break
         }
+        def channel = variant.productFlavors[2] //index of flavorDimensions "app", "server", "channel"
         variant.outputs.all {
-            def apkName = "${flavor.name}_v${variant.mergedFlavor.versionName}_${buildType.name}_${buildTime()}"
+            def apkName = "${flavor.name}_${channel.name}_v${variant.mergedFlavor.versionName}_${buildType.name}_${buildTime()}"
             outputFileName = apkName + ".apk"
         }
     }
